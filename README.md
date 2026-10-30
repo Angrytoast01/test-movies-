@@ -1,19 +1,22 @@
 # 🎬 Movie Manager
 
-A simple command-line application to manage a personal movie collection, written in Java.
+A Java application to manage a personal movie collection, with **both a Swing
+GUI and a command-line interface**.
 
 List, add, update, delete, search, and sort your movies. Each movie tracks a
 title, director, genre, release year, rating, and whether you've watched it.
-Your collection is saved to a JSON file so it persists between runs.
+Your collection is saved to a JSON file so it persists between runs — and
+because both interfaces share the same storage, they stay in sync.
 
 ## Features
 
-- **List** all movies in a formatted table
+- **Two interfaces:** a desktop **Swing GUI** and an interactive **CLI**
+- **List** all movies (sortable table / formatted text)
 - **Add** a new movie with input validation
-- **Update** any field of an existing movie (partial updates supported)
+- **Update** any field of an existing movie
 - **Delete** a movie (with confirmation)
-- **Mark watched / unwatched**
-- **Search** across title, director, and genre (case-insensitive)
+- **Mark watched / unwatched** (GUI: toggle the checkbox directly in the table)
+- **Search** across title, director, and genre (case-insensitive; live-filtering in the GUI)
 - **Sort** by title, year, rating, or director
 - **File-based persistence** — data stored in a human-readable JSON file
 
@@ -56,15 +59,29 @@ You can choose a different location:
 java -Dmovies.file=/path/to/my-movies.json -jar target/movie-manager.jar
 ```
 
-You can also run directly through Maven during development:
+## Choosing the interface
+
+By default the app launches the **GUI**. If no display is available (e.g. a
+headless server), it automatically falls back to the CLI. You can force either
+one with a flag:
 
 ```bash
-mvn compile exec:java -Dexec.mainClass=com.example.movie.Main
+java -jar dist/movie-manager.jar          # GUI (default)
+java -jar dist/movie-manager.jar --gui    # force the GUI
+java -jar dist/movie-manager.jar --cli    # force the CLI
 ```
 
-## Usage
+### GUI
 
-When launched, you get an interactive menu:
+- A table lists all movies. Click a column header area via the **Sort**
+  dropdown to order by title, year, rating, or director.
+- **Add / Edit / Delete** buttons in the toolbar. Double-click a row to edit it.
+- The **Search** box filters the list as you type (title, director, genre).
+- Toggle the **Watched** checkbox directly in a row to update it instantly.
+
+### CLI
+
+The CLI presents an interactive, numbered menu:
 
 ```
 =====================================
@@ -112,11 +129,15 @@ movie-manager/
 ├── LICENSE
 └── src
     ├── main/java/com/example/movie
-    │   ├── Main.java               # Entry point
+    │   ├── Main.java               # Entry point (GUI by default, --cli for CLI)
     │   ├── Movie.java              # Domain model
     │   ├── Json.java               # Tiny built-in JSON reader/writer
     │   ├── MovieRepository.java    # CRUD + search/sort + JSON persistence
-    │   └── MovieManagerCli.java    # Interactive menu
+    │   ├── MovieManagerCli.java    # Interactive CLI menu
+    │   └── gui
+    │       ├── MovieManagerGui.java  # Main Swing window (table + toolbar)
+    │       ├── MovieTableModel.java  # JTable model over the repository
+    │       └── MovieDialog.java      # Add/edit form dialog
     └── test/java/com/example/movie
         └── RepositoryTests.java    # Dependency-free test runner
 ```

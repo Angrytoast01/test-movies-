@@ -20,9 +20,9 @@ compile() {
     echo ">> Compiling..."
     rm -rf "$OUT"
     mkdir -p "$OUT"
-    javac -d "$OUT" \
-        "$ROOT"/src/main/java/com/example/movie/*.java \
-        "$ROOT"/src/test/java/com/example/movie/*.java
+    # Collect all sources recursively (main + test, including sub-packages).
+    find "$ROOT/src" -name '*.java' > "$OUT/sources.txt"
+    javac -d "$OUT" @"$OUT/sources.txt"
     echo ">> Compiled to $OUT"
 }
 
