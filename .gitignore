@@ -1,0 +1,25 @@
+# Maven
+target/
+*.class
+
+# JDK-only build outputs (build.sh)
+out/
+dist/
+
+# Application data file (local movie collection)
+movies.json
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

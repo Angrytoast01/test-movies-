@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>movie-manager</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Movie Manager</name>
+    <description>A command-line application to manage a collection of movies.</description>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!--
+        This project intentionally has no external dependencies: it uses a small
+        built-in JSON reader/writer (com.example.movie.Json) so it builds with
+        just the JDK. Tests are plain Java assertions run via the custom
+        RepositoryTests main class (see src/test), so no test framework is
+        required either.
+    -->
+
+    <build>
+        <finalName>movie-manager</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.example.movie.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
