@@ -5,16 +5,22 @@ import com.example.movie.MovieRepository;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -23,6 +29,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -41,6 +49,8 @@ public class MovieManagerGui extends JFrame {
     private final JTextField searchField = new JTextField(18);
     private final JComboBox<SortOption> sortCombo = new JComboBox<>(SortOption.values());
     private final JLabel statusLabel = new JLabel();
+    private final Path prefsFile;
+    private Theme currentTheme;
 
     /** Pairs a human-readable label with a repository sort key. */
     private enum SortOption {
@@ -64,13 +74,16 @@ public class MovieManagerGui extends JFrame {
         }
     }
 
-    public MovieManagerGui(MovieRepository repository) {
+    public MovieManagerGui(MovieRepository repository, Theme theme, Path prefsFile) {
         super("🎬 Movie Manager");
         this.repository = repository;
+        this.currentTheme = theme;
+        this.prefsFile = prefsFile;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        setJMenuBar(buildMenuBar());
         add(buildToolBar(), BorderLayout.NORTH);
         add(buildTable(), BorderLayout.CENTER);
         add(buildStatusBar(), BorderLayout.SOUTH);
@@ -80,6 +93,67 @@ public class MovieManagerGui extends JFrame {
         setSize(760, 460);
         setMinimumSize(new Dimension(620, 320));
         setLocationRelativeTo(null);
+    }
+
+    /* ---------------------------- Menu bar -------------------------- */
+
+    private JMenuBar buildMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.setMnemonic(KeyEvent.VK_V);
+
+        JMenu themeMenu = new JMenu("Theme");
+
+        JRadioButtonMenuItem lightItem = new JRadioButtonMenuItem("Light");
+        JRadioButtonMenuItem darkItem = new JRadioButtonMenuItem("Dark");
+        ButtonGroup group = new ButtonGroup();
+        group.add(lightItem);
+        group.add(darkItem);
+        if (currentTheme == Theme.DARK) {
+            darkItem.setSelected(true);
+        } else {
+            lightItem.setSelected(true);
+        }
+        lightItem.addActionListener(e -> switchTheme(Theme.LIGHT));
+        darkItem.addActionListener(e -> switchTheme(Theme.DARK));
+        themeMenu.add(lightItem);
+        themeMenu.add(darkItem);
+        viewMenu.add(themeMenu);
+
+        // Quick toggle: Ctrl/Cmd + D flips between light and dark.
+        JMenuItemToggle toggle = new JMenuItemToggle(lightItem, darkItem);
+        JMenuItem toggleItem = new JMenuItem("Toggle Light / Dark");
+        int shortcutMask = java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        toggleItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, shortcutMask));
+        toggleItem.addActionListener(e -> {
+            switchTheme(currentTheme.opposite());
+            toggle.sync(currentTheme);
+        });
+        viewMenu.add(toggleItem);
+
+        menuBar.add(viewMenu);
+        return menuBar;
+    }
+
+    /** Small helper to keep the radio items in sync when toggling via shortcut. */
+    private record JMenuItemToggle(JRadioButtonMenuItem light, JRadioButtonMenuItem dark) {
+        void sync(Theme theme) {
+            if (theme == Theme.DARK) {
+                dark.setSelected(true);
+            } else {
+                light.setSelected(true);
+            }
+        }
+    }
+
+    private void switchTheme(Theme theme) {
+        if (theme == currentTheme) {
+            return;
+        }
+        currentTheme = theme;
+        Theme.apply(theme);
+        theme.save(prefsFile);
     }
 
     /* ------------------------------ UI ------------------------------ */
@@ -277,15 +351,27 @@ public class MovieManagerGui extends JFrame {
 
     /* ----------------------------- Launch --------------------------- */
 
-    /** Launches the GUI on the Swing event-dispatch thread. */
-    public static void launch(MovieRepository repository) {
+    /**
+     * Launches the GUI on the Swing event-dispatch thread.
+     *
+     * @param repository the shared movie repository
+     * @param prefsFile  file used to remember the theme choice (may be null)
+     */
+    public static void launch(MovieRepository repository, Path prefsFile) {
         SwingUtilities.invokeLater(() -> {
+            // Use the cross-platform (Metal) look and feel: its colours are fully
+            // driven by UIManager defaults, which lets our themes recolour every
+            // component — including on platforms whose native L&F ignores them.
             try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             } catch (Exception ignored) {
-                // Fall back to the default look and feel.
+                // Fall back to whatever default is available.
             }
-            new MovieManagerGui(repository).setVisible(true);
+
+            Theme theme = Theme.load(prefsFile);
+            theme.install();
+
+            new MovieManagerGui(repository, theme, prefsFile).setVisible(true);
         });
     }
 }

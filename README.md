@@ -73,11 +73,15 @@ java -jar dist/movie-manager.jar --cli    # force the CLI
 
 ### GUI
 
-- A table lists all movies. Click a column header area via the **Sort**
-  dropdown to order by title, year, rating, or director.
+- A table lists all movies. Use the **Sort** dropdown to order by title, year,
+  rating, or director.
 - **Add / Edit / Delete** buttons in the toolbar. Double-click a row to edit it.
 - The **Search** box filters the list as you type (title, director, genre).
 - Toggle the **Watched** checkbox directly in a row to update it instantly.
+- **Light / Dark theme** — switch via **View → Theme**, or toggle instantly with
+  **Ctrl + D** (**⌘ + D** on macOS). The app starts in **dark** mode by default
+  and remembers your choice between runs (stored in a `.movie-manager.prefs`
+  file next to your data file).
 
 ### CLI
 
@@ -135,9 +139,10 @@ movie-manager/
     │   ├── MovieRepository.java    # CRUD + search/sort + JSON persistence
     │   ├── MovieManagerCli.java    # Interactive CLI menu
     │   └── gui
-    │       ├── MovieManagerGui.java  # Main Swing window (table + toolbar)
+    │       ├── MovieManagerGui.java  # Main Swing window (menu + table + toolbar)
     │       ├── MovieTableModel.java  # JTable model over the repository
-    │       └── MovieDialog.java      # Add/edit form dialog
+    │       ├── MovieDialog.java      # Add/edit form dialog
+    │       └── Theme.java            # Light/dark themes (switchable + persisted)
     └── test/java/com/example/movie
         └── RepositoryTests.java    # Dependency-free test runner
 ```

@@ -9,6 +9,9 @@ dist/
 # Application data file (local movie collection)
 movies.json
 
+# Local theme / UI preferences
+.movie-manager.prefs
+
 # IDE
 .idea/
 *.iml

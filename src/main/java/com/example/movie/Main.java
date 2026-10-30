@@ -30,8 +30,14 @@ public final class Main {
         if (useCli(args)) {
             runCli(repository);
         } else {
-            MovieManagerGui.launch(repository);
+            MovieManagerGui.launch(repository, prefsFileFor(storage));
         }
+    }
+
+    /** Places a small theme-preference file next to the data file. */
+    private static Path prefsFileFor(Path storage) {
+        Path dir = storage.toAbsolutePath().getParent();
+        return dir != null ? dir.resolve(".movie-manager.prefs") : Path.of(".movie-manager.prefs");
     }
 
     private static boolean useCli(String[] args) {
